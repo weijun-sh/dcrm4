@@ -427,7 +427,7 @@ func setGroup(n *Node, replace string) {
 			ipa := &net.UDPAddr{IP: node.IP, Port: int(node.UDP)}
 			go SendToPeer(node.ID, ipa, "")
 			//TODO get and send privatekey slice
-			//go SendMsgToPeer(node.ID, ipa, "0xff00ff")
+			//go SendMsgToNode(node.ID, ipa, "0xff00ff")
 		}
 		enodes := fmt.Sprintf("%v,%v", count, enode)
 		log.Debug("send group to nodes", "group: ", enodes)
@@ -438,8 +438,8 @@ func setGroup(n *Node, replace string) {
 }
 
 //send group info
-func SendMsgToPeer(toid NodeID, toaddr *net.UDPAddr, msg string) error {
-	log.Debug("==== discover.SendMsgToPeer() ====\n")
+func SendMsgToNode(toid NodeID, toaddr *net.UDPAddr, msg string) error {
+	log.Debug("==== discover.SendMsgToNode() ====\n")
 	log.Debug("toid: %#v, toaddr: %#v, msg: %#v\n", toid, toaddr, msg)
 	if msg == "" {
 		return nil

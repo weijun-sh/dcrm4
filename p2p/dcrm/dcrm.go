@@ -24,6 +24,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"errors"
 
 	mapset "github.com/deckarep/golang-set"
 	"github.com/fusion/go-fusion/common"
@@ -314,12 +315,28 @@ func SendToPeer(enode string, msg string) {
 	node, _ := discover.ParseNode(enode)
 	//log.Debug("node.id: %+v, node.IP: %+v, node.UDP: %+v\n", node.ID, node.IP, node.UDP)
 	ipa := &net.UDPAddr{IP: node.IP, Port: int(node.UDP)}
-	discover.SendMsgToPeer(node.ID, ipa, msg)
+	discover.SendMsgToNode(node.ID, ipa, msg)
 }
 
-func SendMsgToPeer(toid discover.NodeID, toaddr *net.UDPAddr, msg string) error {
+func SendMsgToNode(toid discover.NodeID, toaddr *net.UDPAddr, msg string) error {
+	log.Debug("==== SendMsgToNode() ====\n")
+	return discover.SendMsgToNode(toid, toaddr, msg)
+}
+
+func SendMsgToPeer(enode string, msg string) error {
 	log.Debug("==== SendMsgToPeer() ====\n")
-	return discover.SendMsgToPeer(toid, toaddr, msg)
+	node, _ := discover.ParseNode(enode)
+	p := emitter.peers[node.ID]
+	if p == nil {
+		log.Debug("Failed: SendToPeer peers mismatch peerID", "peerID", node.ID)
+		return errors.New("peerID mismatch!")
+	}
+	if err := p2p.Send(p.ws, dcrmMsgCode, msg); err == nil {
+		log.Debug("Failed: SendToPeer", "peerID", node.ID, "msg", msg)
+		return err
+	}
+	log.Debug("Success: SendToPeer", "peerID", node.ID, "msg", msg)
+	return nil
 }
 
 type Transaction struct {
